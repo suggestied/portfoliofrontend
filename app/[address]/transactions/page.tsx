@@ -1,11 +1,12 @@
 import { Suspense } from "react"
 import Image from "next/image"
+import { formatDistanceToNow } from "date-fns"
+import { ArrowDownRight, ArrowUpRight } from "lucide-react"
 
+import { Transaction } from "@/types/api"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Transaction } from "@/types/api"
-
 
 async function fetchTransactions(address: string, page: number = 1) {
   const response = await fetch(
@@ -18,16 +19,16 @@ async function fetchTransactions(address: string, page: number = 1) {
   return response.json()
 }
 
-// transaction details
 function TransactionDetails({ hash }: { hash: string }) {
   return (
     <a
       href={`https://etherscan.io/tx/${hash}`}
       target="_blank"
       rel="noreferrer"
-      className="text-blue-600 hover:underline"
+      className="text-blue-600 hover:underline flex items-center"
     >
-      {hash}
+      {hash.slice(0, 6)}...{hash.slice(-4)}
+      <ArrowUpRight className="ml-1 h-3 w-3" />
     </a>
   )
 }
@@ -40,12 +41,16 @@ export default async function TransactionsPage({
   const transactions = await fetchTransactions(params.address)
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Transactions</h1>
+    <div className="container mx-auto px-4">
+      <h1 className="text-3xl font-bold mb-6">Transactions</h1>
       <div className="grid grid-cols-1 gap-4">
         <Suspense fallback={<TransactionsSkeleton />}>
           {transactions.map((transaction: Transaction) => (
-            <TransactionCard key={transaction.hash} transaction={transaction} />
+            <TransactionCard
+              key={transaction.hash}
+              transaction={transaction}
+              address={params.address}
+            />
           ))}
         </Suspense>
       </div>
@@ -58,7 +63,20 @@ export default async function TransactionsPage({
   )
 }
 
-function TransactionCard({ transaction }: { transaction: Transaction }) {
+function TransactionCard({
+  transaction,
+  address,
+}: {
+  transaction: Transaction
+  address: string
+}) {
+  const isIncoming = transaction.to.toLowerCase() === address.toLowerCase()
+  const formattedValue = (parseFloat(transaction.value) / 1e18).toFixed(4)
+  const formattedDate = formatDistanceToNow(
+    new Date(transaction.blockTimestamp),
+    { addSuffix: true }
+  )
+
   return (
     <Card>
       <CardContent className="p-4">
@@ -76,18 +94,33 @@ function TransactionCard({ transaction }: { transaction: Transaction }) {
             {transaction.receiptStatus === 1 ? "Success" : "Failed"}
           </Badge>
         </div>
-        <p className="text-sm text-muted-foreground truncate mt-2">
-          From: {transaction.from}
-        </p>
-        <p className="text-sm text-muted-foreground truncate">
-          To: {transaction.to}
-        </p>
-        <div className="flex justify-between items-center mt-2">
-          <Badge variant="outline">{transaction.chain}</Badge>
-          <p className="text-sm font-medium">
-            {parseFloat(transaction.value) / 1e18} ETH
+        <div className="mt-2 space-y-1">
+          <p className="text-sm text-muted-foreground truncate">
+            From: {transaction.from}
+          </p>
+          <p className="text-sm text-muted-foreground truncate">
+            To: {transaction.to}
           </p>
         </div>
+        <div className="flex justify-between items-center mt-3">
+          <Badge variant="outline">{transaction.chain}</Badge>
+          <div className="flex items-center">
+            {isIncoming ? (
+              <ArrowDownRight className="text-green-500 mr-1 h-4 w-4" />
+            ) : (
+              <ArrowUpRight className="text-red-500 mr-1 h-4 w-4" />
+            )}
+            <p
+              className={`text-sm font-medium ${
+                isIncoming ? "text-green-500" : "text-red-500"
+              }`}
+            >
+              {isIncoming ? "+" : "-"}
+              {formattedValue} ETH
+            </p>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground mt-2">{formattedDate}</p>
       </CardContent>
     </Card>
   )

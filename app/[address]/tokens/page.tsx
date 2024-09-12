@@ -1,18 +1,20 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { useEffect, useState } from "react"
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 
-
-
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
-
-
-
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
 interface Token {
   id: number
@@ -76,23 +78,8 @@ export default function TokensPage({
   }
 
   const formatTokenAmount = (value: number, decimals: number): string => {
-   // the value needs to be multiplied by 10^decimals
-    const amount = value;
-
+    const amount = value
     return amount.toLocaleString()
-
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        Loading tokens...
-      </div>
-    )
-  }
-
-  if (error) {
-    return <div className="text-red-500 text-center">{error}</div>
   }
 
   const totalValue = tokens.reduce(
@@ -113,36 +100,47 @@ export default function TokensPage({
     "#82CA9D",
   ]
 
+  if (error) {
+    return <div className="text-red-500 text-center">{error}</div>
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4">
-
         <Card className="col-span-2">
           <CardHeader>
             <CardTitle>Token Distribution</CardTitle>
           </CardHeader>
           <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieChartData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {pieChartData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-              </PieChart>
-            </ResponsiveContainer>
+            {isLoading ? (
+              <div className="flex items-center justify-center h-full">
+                <Skeleton className="h-[200px] w-[200px] rounded-full" />
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieChartData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {pieChartData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value) => formatCurrency(Number(value))}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -161,42 +159,69 @@ export default function TokensPage({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tokens.map((token) => (
-                <TableRow key={token.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center space-x-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage
-                          src={token.tokenDetails.thumbnail}
-                          alt={token.tokenDetails.name}
-                        />
-                        <AvatarFallback>
-                          {token.tokenDetails.symbol}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div>{token.tokenDetails.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {token.tokenDetails.symbol}
+              {isLoading
+                ? Array.from({ length: 5 }).map((_, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                          <div>
+                            <Skeleton className="h-4 w-[100px]" />
+                            <Skeleton className="h-3 w-[60px] mt-1" />
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {formatTokenAmount(
-                      token.value,
-                      token.tokenDetails.decimals
-                    )}{" "}
-                    {token.tokenDetails.symbol}
-                  </TableCell>
-                  <TableCell>
-                    {formatCurrency(token.value * token.tokenDetails.usdPrice)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{token.tokenDetails.chain}</Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-[80px]" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-[60px]" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-[60px]" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                : tokens.map((token) => (
+                    <TableRow key={token.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center space-x-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage
+                              src={token.tokenDetails.thumbnail}
+                              alt={token.tokenDetails.name}
+                            />
+                            <AvatarFallback>
+                              {token.tokenDetails.symbol}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div>{token.tokenDetails.name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {token.tokenDetails.symbol}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {formatTokenAmount(
+                          token.value,
+                          token.tokenDetails.decimals
+                        )}{" "}
+                        {token.tokenDetails.symbol}
+                      </TableCell>
+                      <TableCell>
+                        {formatCurrency(
+                          token.value * token.tokenDetails.usdPrice
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {token.tokenDetails.chain}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
             </TableBody>
           </Table>
         </CardContent>
