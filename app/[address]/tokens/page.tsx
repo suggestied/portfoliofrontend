@@ -1,11 +1,21 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { ArrowUpDown, Search, X } from "lucide-react"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
@@ -40,14 +50,22 @@ interface TokenDetails {
   usdPrice: number
 }
 
+type SortKey = "name" | "value" | "price"
+type SortOrder = "asc" | "desc"
+
 export default function TokensPage({
   params,
 }: {
   params: { address: string }
 }) {
   const [tokens, setTokens] = useState<Token[]>([])
+  const [filteredTokens, setFilteredTokens] = useState<Token[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [sortKey, setSortKey] = useState<SortKey>("value")
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc")
+  const [chainFilter, setChainFilter] = useState<string>("all")
 
   useEffect(() => {
     const fetchTokens = async () => {
@@ -60,6 +78,7 @@ export default function TokensPage({
         }
         const data = await response.json()
         setTokens(data)
+        setFilteredTokens(data)
       } catch (err) {
         setError("Failed to load tokens. Please try again later.")
       } finally {
@@ -70,10 +89,41 @@ export default function TokensPage({
     fetchTokens()
   }, [params.address])
 
+  useEffect(() => {
+    const filtered = tokens.filter(
+      (token) =>
+        (token.tokenDetails.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+          token.tokenDetails.symbol
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())) &&
+        (chainFilter === "all" || token.tokenDetails.chain === chainFilter)
+    )
+    const sorted = [...filtered].sort((a, b) => {
+      if (sortKey === "name") {
+        return sortOrder === "asc"
+          ? a.tokenDetails.name.localeCompare(b.tokenDetails.name)
+          : b.tokenDetails.name.localeCompare(a.tokenDetails.name)
+      } else if (sortKey === "value") {
+        const aValue = a.value * a.tokenDetails.usdPrice
+        const bValue = b.value * b.tokenDetails.usdPrice
+        return sortOrder === "asc" ? aValue - bValue : bValue - aValue
+      } else {
+        return sortOrder === "asc"
+          ? a.tokenDetails.usdPrice - b.tokenDetails.usdPrice
+          : b.tokenDetails.usdPrice - a.tokenDetails.usdPrice
+      }
+    })
+    setFilteredTokens(sorted)
+  }, [tokens, searchTerm, sortKey, sortOrder, chainFilter])
+
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(value)
   }
 
@@ -82,10 +132,6 @@ export default function TokensPage({
     return amount.toLocaleString()
   }
 
-  const totalValue = tokens.reduce(
-    (sum, token) => sum + token.value * token.tokenDetails.usdPrice,
-    0
-  )
   const pieChartData = tokens.map((token) => ({
     name: token.tokenDetails.symbol,
     value: token.value * token.tokenDetails.usdPrice,
@@ -98,16 +144,35 @@ export default function TokensPage({
     "#FF8042",
     "#8884D8",
     "#82CA9D",
+    "#A4DE6C",
+    "#D0ED57",
+    "#FFA07A",
+    "#20B2AA",
+    "#B0C4DE",
+    "#DDA0DD",
   ]
 
+  const uniqueChains = Array.from(
+    new Set(tokens.map((token) => token.tokenDetails.chain))
+  )
+
   if (error) {
-    return <div className="text-red-500 text-center">{error}</div>
+    return (
+      <Card className="m-4">
+        <CardContent className="pt-6">
+          <div className="text-red-500 text-center">{error}</div>
+          <Button className="mt-4" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4">
-        <Card className="col-span-2">
+    <div className="space-y-6 p-4">
+      <div className="flex flex-col md:flex-row gap-4">
+        <Card className="w-full md:w-1/2">
           <CardHeader>
             <CardTitle>Token Distribution</CardTitle>
           </CardHeader>
@@ -143,10 +208,83 @@ export default function TokensPage({
             )}
           </CardContent>
         </Card>
+
+        <Card className="w-full md:w-1/2">
+          <CardHeader>
+            <CardTitle>Token Search and Filter</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Search className="text-muted-foreground" />
+                <Input
+                  placeholder="Search tokens..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="flex-grow"
+                />
+                {searchTerm && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSearchTerm("")}
+                    aria-label="Clear search"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              <div className="flex items-center space-x-2">
+                <Select
+                  value={sortKey}
+                  onValueChange={(value: SortKey) => setSortKey(value)}
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name">Name</SelectItem>
+                    <SelectItem value="value">Value</SelectItem>
+                    <SelectItem value="price">Price</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                  }
+                  className="flex-grow"
+                >
+                  <ArrowUpDown className="mr-2 h-4 w-4" />
+                  {sortOrder === "asc" ? "Ascending" : "Descending"}
+                </Button>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Select
+                  value={chainFilter}
+                  onValueChange={(value: string) => setChainFilter(value)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Filter by chain" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Chains</SelectItem>
+                    {uniqueChains.map((chain) => (
+                      <SelectItem key={chain} value={chain}>
+                        {chain}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
       <Card>
         <CardHeader>
-          <CardTitle>Tokens</CardTitle>
+          <CardTitle>Tokens ({filteredTokens.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -154,6 +292,7 @@ export default function TokensPage({
               <TableRow>
                 <TableHead>Token</TableHead>
                 <TableHead>Balance</TableHead>
+                <TableHead>Price</TableHead>
                 <TableHead>Value</TableHead>
                 <TableHead>Chain</TableHead>
               </TableRow>
@@ -178,11 +317,14 @@ export default function TokensPage({
                         <Skeleton className="h-4 w-[60px]" />
                       </TableCell>
                       <TableCell>
+                        <Skeleton className="h-4 w-[60px]" />
+                      </TableCell>
+                      <TableCell>
                         <Skeleton className="h-6 w-[60px]" />
                       </TableCell>
                     </TableRow>
                   ))
-                : tokens.map((token) => (
+                : filteredTokens.map((token) => (
                     <TableRow key={token.id}>
                       <TableCell className="font-medium">
                         <div className="flex items-center space-x-2">
@@ -209,6 +351,9 @@ export default function TokensPage({
                           token.tokenDetails.decimals
                         )}{" "}
                         {token.tokenDetails.symbol}
+                      </TableCell>
+                      <TableCell>
+                        {formatCurrency(token.tokenDetails.usdPrice)}
                       </TableCell>
                       <TableCell>
                         {formatCurrency(
