@@ -1,29 +1,20 @@
-"use client"
+"use client";
 
-import React, { useEffect, useState } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import {
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  TooltipProps,
-  XAxis,
-  YAxis,
-} from "recharts"
-import {
-  NameType,
-  ValueType,
-} from "recharts/types/component/DefaultTooltipContent"
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Line, LineChart, ResponsiveContainer, Tooltip, TooltipProps, XAxis, YAxis } from "recharts";
+import { NameType, ValueType } from "recharts/types/component/DefaultTooltipContent";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-} from "@/components/ui/navigation-menu"
+
+
+import { Networth } from "@/types/api";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "@/components/ui/navigation-menu";
+
+
+
+
 
 interface WalletLayoutProps {
   children: React.ReactNode
@@ -44,6 +35,31 @@ export default function WalletLayout({
   const ens = "suggestied.eth"
   const [chartData, setChartData] = useState<ChartDataPoint[]>([])
   const pathname = usePathname()
+
+
+// net worth state
+  const [networth, setNetworth] = useState<Networth | null>(null)
+
+  // get networth from api
+  useEffect(() => {
+    const fetchNetworth = async () => {
+      try {
+        const response = await fetch(
+          `https://d4og4sw4sgogskkc8o0okk8k.keke.ceo/api/moralis/networth/${address}`
+        )
+        if (!response.ok) {
+          throw new Error("Failed to fetch net worth")
+        }
+        const data = await response.json()
+        setNetworth(data)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
+    fetchNetworth()
+  }
+  , [address])
 
   useEffect(() => {
     // Simulating more realistic net worth data over 30 days
@@ -67,8 +83,7 @@ export default function WalletLayout({
     }).format(value)
   }
 
-  const latestValue =
-    chartData.length > 0 ? chartData[chartData.length - 1].value : 0
+  const latestValue = networth?.totalNetworthUsd || 0
   const startValue = chartData.length > 0 ? chartData[0].value : 0
   const percentageChange = ((latestValue - startValue) / startValue) * 100
 
