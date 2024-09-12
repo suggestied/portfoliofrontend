@@ -210,7 +210,7 @@ export default function TokensPage({
         </Card>
 
         <Card className="w-full md:w-1/2">
-          <CardHeader>
+          <CardHeader className="h-min">
             <CardTitle>Token Search and Filter</CardTitle>
           </CardHeader>
           <CardContent>
