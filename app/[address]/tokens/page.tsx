@@ -75,7 +75,7 @@ export default function TokensPage({
   }
 
   const formatTokenAmount = (value: number, decimals: number): string => {
-    return (value / Math.pow(10, decimals)).toFixed(4)
+    return (value * decimals).toFixed(decimals)
   }
 
   if (isLoading) {
@@ -132,7 +132,8 @@ export default function TokensPage({
                   {token.tokenDetails.symbol}
                 </TableCell>
                 <TableCell>
-                  {formatCurrency(token.value * token.tokenDetails.usdPrice)}
+                  {formatCurrency(token.value * token.tokenDetails.decimals
+                     * token.tokenDetails.usdPrice)}
                 </TableCell>
                 <TableCell>
                   <Badge variant="outline">{token.tokenDetails.chain}</Badge>
