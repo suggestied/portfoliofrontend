@@ -66,3 +66,23 @@ export interface NFT {
 }
 
 
+// api/moralis/transactons
+export interface Transaction {
+  id: string;
+  from: string;
+  to: string;
+  nonce: string;
+  data: string;
+  value: string;
+  hash: string;
+  chain: string;
+  gas: string;
+  gasPrice: string;
+  index: number;
+  blockNumber: string;
+  blockHash: string;
+  blockTimestamp: string;
+  cumulativeGasUsed: string;
+  gasUsed: string;
+  receiptStatus: number;
+}
