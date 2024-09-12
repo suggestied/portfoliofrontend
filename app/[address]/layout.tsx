@@ -1,6 +1,8 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import {
   Line,
   LineChart,
@@ -16,6 +18,12 @@ import {
 } from "recharts/types/component/DefaultTooltipContent"
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+} from "@/components/ui/navigation-menu"
 
 interface WalletLayoutProps {
   children: React.ReactNode
@@ -35,6 +43,7 @@ export default function WalletLayout({
 }: WalletLayoutProps) {
   const ens = "suggestied.eth"
   const [chartData, setChartData] = useState<ChartDataPoint[]>([])
+  const pathname = usePathname()
 
   useEffect(() => {
     // Simulating more realistic net worth data over 30 days
@@ -87,6 +96,13 @@ export default function WalletLayout({
     return null
   }
 
+  const navItems = [
+    { href: `/${address}`, label: "Overview" },
+    { href: `/${address}/tokens`, label: "Tokens" },
+    { href: `/${address}/nfts`, label: "NFTs" },
+    { href: `/${address}/transactions`, label: "Transactions" },
+  ]
+
   return (
     <div className="flex flex-col max-w-4xl mx-auto p-4 space-y-4">
       <Card className="w-full overflow-hidden">
@@ -138,6 +154,27 @@ export default function WalletLayout({
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      <NavigationMenu>
+        <NavigationMenuList className="flex space-x-4">
+          {navItems.map((item) => (
+            <NavigationMenuItem key={item.href}>
+              <Link href={item.href} passHref legacyBehavior>
+                <NavigationMenuLink
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                    pathname === item.href
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`}
+                >
+                  {item.label}
+                </NavigationMenuLink>
+              </Link>
+            </NavigationMenuItem>
+          ))}
+        </NavigationMenuList>
+      </NavigationMenu>
+
       <div>{children}</div>
     </div>
   )
