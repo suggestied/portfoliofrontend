@@ -1,19 +1,18 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
+import { useEffect, useState } from "react";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+
+
+
 
 interface Token {
   id: number
@@ -77,7 +76,11 @@ export default function TokensPage({
   }
 
   const formatTokenAmount = (value: number, decimals: number): string => {
-    return (value / Math.pow(10, decimals)).toFixed(4)
+   // the value needs to be multiplied by 10^decimals
+    const amount = value;
+
+    return amount.toLocaleString()
+
   }
 
   if (isLoading) {
