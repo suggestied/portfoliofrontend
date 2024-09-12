@@ -46,9 +46,6 @@ export default function IndexPage() {
         {wallets.map((address, index) => {
         const networth = networths.find((n) => n.address === address);
 
-        if (!networth) {
-          return null
-        }
 
         return <Wallet key={address} address={address} networth={networth} />
       })}

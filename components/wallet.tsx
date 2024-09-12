@@ -1,16 +1,18 @@
 "use client"
 
 import React, { useState } from "react"
-import { Check, Copy } from "lucide-react"
+import Link from "next/link"
+import { Check, Copy, ExternalLink } from "lucide-react"
 
 import { Networth } from "@/types/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface WalletProps {
   address: string
-  networth: Networth
+  networth: Networth | null | undefined
 }
 
 export default function Wallet({ address, networth }: WalletProps) {
@@ -43,22 +45,35 @@ export default function Wallet({ address, networth }: WalletProps) {
     return colors[index % colors.length]
   }
 
+  const isLoading = networth === null || networth === undefined
+
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">Wallet</CardTitle>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={copyToClipboard}
-          aria-label="Copy wallet address"
-        >
-          {copied ? (
-            <Check className="h-4 w-4" />
-          ) : (
-            <Copy className="h-4 w-4" />
-          )}
-        </Button>
+        <div className="flex space-x-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={copyToClipboard}
+            aria-label="Copy wallet address"
+          >
+            {copied ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <Copy className="h-4 w-4" />
+            )}
+          </Button>
+          <Link href={`/${address}`} passHref>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="View wallet details"
+            >
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -68,30 +83,41 @@ export default function Wallet({ address, networth }: WalletProps) {
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Total Networth</p>
-            <p className="text-2xl font-bold">
-              {formatCurrency(networth.totalNetworthUsd)}
-            </p>
+            {isLoading ? (
+              <Skeleton className="h-8 w-32" />
+            ) : (
+              <p className="text-2xl font-bold">
+                {formatCurrency(networth.totalNetworthUsd)}
+              </p>
+            )}
           </div>
-          {
-            networth.chainNetworths && <div className="space-y-2">
+          <div className="space-y-2">
             <p className="text-xs font-medium">Chain Distribution</p>
-            {networth.chainNetworths.map((chainNetworth, index) => (
-              <div key={chainNetworth.chain} className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span>{chainNetworth.chain}</span>
-                  <span>{formatCurrency(chainNetworth.networthUsd)}</span>
+            {isLoading ? (
+              <>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+              </>
+            ) : (
+              networth.chainNetworths &&
+              networth.chainNetworths.map((chainNetworth, index) => (
+                <div key={chainNetworth.chain} className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span>{chainNetworth.chain}</span>
+                    <span>{formatCurrency(chainNetworth.networthUsd)}</span>
+                  </div>
+                  <Progress
+                    value={
+                      (chainNetworth.networthUsd / networth.totalNetworthUsd) *
+                      100
+                    }
+                    className={`h-2 ${getProgressColor(index)}`}
+                  />
                 </div>
-                <Progress
-                  value={
-                    (chainNetworth.networthUsd / networth.totalNetworthUsd) *
-                    100
-                  }
-                  className={`h-2 ${getProgressColor(index)}`}
-                />
-              </div>
-            ))}
+              ))
+            )}
           </div>
-          }
         </div>
       </CardContent>
     </Card>
