@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation"
 import { Table, TableBody, TableCell, TableHead, TableRow } from "@/components/ui/table"
 import Link from "next/link"
+import { TokenDetails } from "@/types/api"
 
-async function getTokensData() {
+
+async function getTokensData(): Promise<TokenDetails[] | null> {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/api/tokens`
   )
@@ -30,9 +32,9 @@ export default async function TokenPage() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {tokensData.map((token) => (
+          {tokensData.map((token: TokenDetails) => (
 
-                <TableRow key={token.tokenHash}>
+                <TableRow key={token.contractAddress}>
                    <Link
               key={token.id}
               href={`/tokens/${token.id}`}
