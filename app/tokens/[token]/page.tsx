@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation"
 
-import TokenDetails from "./token-details"
 
 async function getTokenData(token: string) {
 //  (PUBLIC_API_URL env)/api/tokens/0x906CC2Ad139eb6637e28605F908903C8aDCe566A?chain=1
