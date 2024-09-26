@@ -1,10 +1,9 @@
 import { notFound } from "next/navigation"
-
+import TokenCard from "@/components/tokenCard"
 
 async function getTokenData(token: string) {
-//  (PUBLIC_API_URL env)/api/tokens/0x906CC2Ad139eb6637e28605F908903C8aDCe566A?chain=1
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/tokens/${token}&chain=1`
+    `${process.env.NEXT_PUBLIC_API_URL}/api/tokens/${token}?chain=1`
   )
   if (!response.ok) {
     return null
@@ -12,20 +11,23 @@ async function getTokenData(token: string) {
   return response.json()
 }
 
-export default async function TokenPage({
-  params,
-}: {
-  params: { token: string }
-}) {
+interface TokenPageProps {
+  params: {
+    token: string
+  }
+}
+
+export default async function TokenPage({ params }: TokenPageProps) {
   const tokenData = await getTokenData(params.token)
 
   if (!tokenData) {
     notFound()
   }
 
+
   return (
-    <div>
-      test
-      </div>
+    <div className="container mx-auto my-4">
+      <TokenCard tokenData={tokenData} />
+    </div>
   )
 }
