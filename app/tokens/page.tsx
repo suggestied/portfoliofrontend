@@ -37,7 +37,7 @@ export default async function TokenPage() {
                 <TableRow key={token.contractAddress}>
                    <Link
               key={token.id}
-              href={`/tokens/${token.id}`}
+              href={`/tokens/${token.contractAddress}`}
               >
               <TableCell>{token.name}</TableCell>
             </Link>

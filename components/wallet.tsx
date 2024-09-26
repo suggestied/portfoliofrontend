@@ -9,10 +9,25 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
+import Image from "next/image"
+import { BrandBinance, CurrencyEthereum, Polygon } from "tabler-icons-react"
 
 interface WalletProps {
   address: string
   networth: Networth | null | undefined
+}
+
+
+// function to get network icon
+function getNetworkIcon(chain: string) {
+  switch (chain) {
+    case "eth":
+      return <CurrencyEthereum />
+    case "bsc":
+      return <BrandBinance />
+    case "matic":
+      return <Polygon />
+  }
 }
 
 export default function Wallet({ address, networth }: WalletProps) {
@@ -104,7 +119,17 @@ export default function Wallet({ address, networth }: WalletProps) {
               networth.chainNetworths.map((chainNetworth, index) => (
                 <div key={chainNetworth.chain} className="space-y-1">
                   <div className="flex justify-between text-xs">
-                    <span>{chainNetworth.chain}</span>
+                    <span className="flex items-center space-x-1">
+
+                      <div className="bg-blue-500/10 p-1 rounded-full mr-1">
+                        {
+                          getNetworkIcon(chainNetworth.chain)
+
+                      }
+                      </div>
+                      {chainNetworth.chain}
+
+                    </span>
                     <span>{formatCurrency(chainNetworth.networthUsd)}</span>
                   </div>
                   <Progress
