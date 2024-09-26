@@ -44,7 +44,9 @@ export default function WalletManager() {
     const fetchNetworth = async (address: string) => {
       try {
         const response = await fetch(
-          `https://d4og4sw4sgogskkc8o0okk8k.keke.ceo/api/moralis/networth/${address}`
+          `${
+            process.env.NEXT_PUBLIC_API_URL
+          }/api/moralis/networth/${address}`
         )
         if (!response.ok) {
           throw new Error("Failed to fetch net worth")
